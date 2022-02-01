@@ -17,11 +17,21 @@ export default {
 
 <style lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100;200;300;400;500;600;700;800;900&display=swap');
+html {
+  margin: 0;
+  padding: 0;
+}
+
+head {
+  padding: 0;
+  margin: 0;
+}
+
 body {
   margin: 0;
+  padding: 0;
   font-family: 'Roboto Slab', serif;
   color: white;
-  height:120vh;
 }
 :root {
   --main-colour: #0081a7;
@@ -29,5 +39,11 @@ body {
 }
 
 #app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  .board {
+    
+  }
 }
 </style>
