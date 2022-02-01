@@ -11,8 +11,9 @@
                     :id="`${yIndex}-${xIndex}`" 
                     :ref="`${yIndex}-${xIndex}`"
                     :class="'unvisited'"
-                    v-on:mousedown="handleCellSelect($event)"
-                    v-on:mouseenter="handleCellSelect($event)"
+                    v-on:mousedown="handleMouseDown($event)"
+                    v-on:mouseenter="handleMouseEnter($event)"
+                    v-on:mouseup="handleMouseUp()"
                     :style="{
                         width: this.cellSize+'px',
                         height: this.cellSize+'px'
@@ -36,8 +37,10 @@ export default {
             numCols: 5,
             cellSize: 75,
             maxFlags: 8,
+            brushValueMap: new Map(),
+            valueBrushMap: new Map(),
             // Setting
-            isRunning: false,
+            isRunning: true,
             renderSpeed: 1,
             selectedBrush: "wall",
             // Algorithms
@@ -46,14 +49,29 @@ export default {
             // BoardState
             board: [],
             flags:[],
+            pathCells:[], // Cells that are highlighted to display searched areas
             startingPosition: null,
             endingPosition: null,
             // Temp Cell State
-            lastValidPosition: null,
+            lastValidPosition: null, // For dragging a cell
         }
     },
     beforeMount() {
-        // Initialise the board
+        // Setup the mappers
+        this.brushValueMap.set('unvisited', 0);
+        this.brushValueMap.set('wall', -1);
+        this.brushValueMap.set('start-node', -2);
+        this.brushValueMap.set('end-node', -3);
+        this.brushValueMap.set('weight', -4);
+        this.brushValueMap.set('flag', -5);
+
+        this.valueBrushMap.set(-0, 'unvisited');
+        this.valueBrushMap.set(-1, 'wall');
+        this.valueBrushMap.set(-2, 'start-node');
+        this.valueBrushMap.set(-3, 'end-node');
+        this.valueBrushMap.set(-4, 'weight');
+        this.valueBrushMap.set(-5, 'flag');
+        // Populate the board
         for (let i = 0; i < this.numRows; i++) {
             const row = [];
             for (let j = 0; j < this.numCols; j++) {
@@ -69,29 +87,70 @@ export default {
     mounted(){
         this.highlightCell(this.startingPosition, "start-node");
         this.highlightCell(this.endingPosition, "end-node");
+        this.board[this.startingPosition[0]][this.startingPosition[1]] = this.brushValueMap.get("start-node");
+        this.board[this.endingPosition[0]][this.endingPosition[1]] = this.brushValueMap.get("end-node");
     },
 
     methods: {
         //-----------------------------------------------------
         // Handlers
         //-----------------------------------------------------
-        // Actions taken when a cell is pressed/dragged on
-        handleCellSelect: function (event){
+        // Actions taken when a cell is pressed
+        handleMouseDown: function (event){
             if (event.buttons !== 1) return; // Returns if not left click
-            this.highlightCell(event.target.id.split('-'), this.selectedBrush);
+            const position = event.target.id.split('-');
+            // Dragging behaviour
+            if (this.selectedBrush === "drag") {
+                if (this.isEmpty(position)) return;
+                this.lastValidPosition = position;
+                console.log("starting drag at: " + this.lastValidPosition);
+            }
+            // Drawing behaviour
+            else {
+                this.draw(position);
+            }
+
+            
+            //this.highlightCell(event.target.id.split('-'), this.selectedBrush);
+        },
+        handleMouseEnter: function (event){
+            if (event.buttons !== 1) return; // Returns if not left click
+            const position = event.target.id.split('-');
+            if (this.selectedBrush === "drag") {
+                if (this.lastValidPosition === null) return;
+                else if (!this.isEmpty(position)) return;
+                
+                this.draw(position, this.valueBrushMap.get(this.board[this.lastValidPosition[0]][this.lastValidPosition[1]]));
+                this.draw(this.lastValidPosition, "unvisited");
+                this.lastValidPosition = position;
+            }
+            // Drawing behaviour
+            else {
+                this.draw(position);
+            }
+        },
+        handleMouseUp: function (){
+            this.lastValidPosition = null;
         },
         //-----------------------------------------------------
         // Cell manipulation 
         //-----------------------------------------------------
-        // Highlight cell at position with specific colour via classname manipulation
-        highlightCell: function(position, hightlight) {
-            const pos = `${position[0]}-${position[1]}`;
-            this.$refs[pos][0].classList = [hightlight];
+        isEmpty: function(position) {
+            return this.board[position[0]][position[1]] == 0;
+        },
+        
+        draw: function(position, selectedBrush=this.selectedBrush) {
+            if (this.isEmpty(position) || selectedBrush === "unvisited") {
+                this.highlightCell(position, selectedBrush);
+                this.board[position[0]][position[1]] = this.brushValueMap.get(selectedBrush);
+            }
         },
 
-
-
-
+        // Highlight cell at position with specific colour via classname manipulation
+        highlightCell: function(position, highlight) {
+            const pos = `${position[0]}-${position[1]}`;
+            this.$refs[pos][0].classList = [highlight];
+        },
 
         //-----------------------------------------------------
         // Rerendering functions
@@ -101,10 +160,8 @@ export default {
                 console.log(this.board + " : " + element);
             });
         },
-        trueRerenderBoard: function(cellsToClear) {
-            cellsToClear.forEach(element => {
-                console.log(this.board + " : " + element);
-            });
+        trueRerenderBoard: function() {
+            this.board.forEach((row)=>console.log(row));
         },
 
     },
@@ -129,6 +186,7 @@ export default {
         padding: 0;
         margin: 0;
         border: 1px solid rgb(201, 200, 255);
+        cursor: pointer;
         &:hover {
             background-color: rgba(255, 239, 148, 0.294);
         }

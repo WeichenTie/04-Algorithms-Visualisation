@@ -33,14 +33,40 @@
                     v-on:change="$emit('on-brush-select', 'flag')">
             </div>
             <div class="option">
+                <label for="start-node-brush">Start Node</label>
+                <input
+                    type="radio"
+                    name="brush"
+                    id="start-node-brush"
+                    class="brush-button"
+                    v-on:change="$emit('on-brush-select', 'start-node')">
+            </div>
+            <div class="option">
+                <label for="end-node-brush">End Node</label>
+                <input
+                    type="radio"
+                    name="brush"
+                    id="end-node-brush"
+                    class="brush-button"
+                    v-on:change="$emit('on-brush-select', 'end-node')">
+            </div>
+            <div class="option">
                 <label for="eraser-brush">Eraser</label>
                 <input
                     type="radio"
                     name="brush"
                     id="eraser-brush"
                     class="brush-button"
-                    v-on:change="$emit('on-brush-select', 'eraser')">
-                
+                    v-on:change="$emit('on-brush-select', 'unvisited')">
+            </div>
+            <div class="option">
+                <label for="drag-brush">Drag Tool</label>
+                <input
+                    type="radio"
+                    name="brush"
+                    id="drag-brush"
+                    class="brush-button"
+                    v-on:change="$emit('on-brush-select', 'drag')">
             </div>
             <button v-on:click.prevent="handleSubmit">Run</button>
             <button v-on:click.prevent="handleSubmit">Stop</button>
