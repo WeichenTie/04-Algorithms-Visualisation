@@ -25,12 +25,13 @@ export default {
 <style lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100;200;300;400;500;600;700;800;900&display=swap');
 :root {
-  --main-colour: #0081a7;
+  --main-colour: rgb(189,212,234);
   --complement-colour: #FFD585;
 }
 html {
   margin: 0;
   padding: 0;
+  background-color: rgb(255, 245, 254);
 }
 
 head {
@@ -42,7 +43,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Roboto Slab', serif;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 h1 {
@@ -63,8 +64,5 @@ h1 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  .board {
-    
-  }
 }
 </style>

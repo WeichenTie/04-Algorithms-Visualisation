@@ -1,5 +1,4 @@
 <template lang="">
-    
     <div class="sidebar">
         <h2>Settings</h2>
         <form>
@@ -68,8 +67,9 @@
                     class="brush-button"
                     v-on:change="$emit('on-brush-select', 'drag')">
             </div>
-            <button v-on:click.prevent="handleSubmit">Run</button>
-            <button v-on:click.prevent="handleSubmit">Stop</button>
+            <button v-on:click.prevent="$emit('on-run')">Run</button>
+            <button v-on:click.prevent="$emit('on-stop')">Stop</button>
+            <button v-on:click.prevent="$emit('on-clear', 'unvisited')">Clear</button>
         </form>
     </div>
 </template>
@@ -91,7 +91,7 @@ export default {
 <style lang="scss">
     $primary: #6743ee;
     .sidebar {
-        width: 400px;
+        width: 300px;
         color: var(--main-colour);
         background-color: rgb(255, 255, 255);
         box-shadow: 0 0 5px black;
