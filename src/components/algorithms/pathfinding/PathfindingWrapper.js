@@ -1,4 +1,4 @@
-function MazeGenWrapper(data, algorithm) {
+function PathfindingWrapper(data, algorithm) {
     const timedLoop = async () => {
         return new Promise((resolve, reject) => {
             const runTimedLoop = async () => {
@@ -94,5 +94,3 @@ function MazeGenWrapper(data, algorithm) {
     }
     return { runAlgorithm, instantLoop };
 }
-
-export default MazeGenWrapper;

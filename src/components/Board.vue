@@ -2,7 +2,8 @@
     <div class="grid">
         <SidebarOptions
             @on-brush-select="selectedBrush=$event"
-            @on-run="handleStart"
+            @on-run="handleStartMaze"
+            @on-search="handleStartSearch"
             @on-stop="isGeneratingMaze=false"
             @on-clear="fillBoard"
             @on-weight-change="weight=$event"
@@ -28,7 +29,7 @@
                 </tr>
             </table>
         </div>
-        <button @click="shouldStep = true">Step</button>
+        <button @click.prevent="shouldStep = true">Step</button>
     </div>
     
 </template>
@@ -38,6 +39,8 @@ import GenPrimsMaze from './algorithms/maze_generation/GenPrimsMaze';
 import GenMazeAlternateWall from './algorithms/maze_generation/GenMazeAlternateWall';
 import GenMazeBorder from './algorithms/maze_generation/GenMazeBorder';
 import GenRecursiveDivisionMaze from './algorithms/maze_generation/GenRecursiveDivisionMaze';
+import FindBFSMaze from './algorithms/pathfinding/FindBFSMaze';
+import FindDFSMaze from './algorithms/pathfinding/FindDFSMaze';
 export default {
     components: {
         SidebarOptions,
@@ -53,6 +56,7 @@ export default {
             brushValueMap: new Map(),
             valueBrushMap: new Map(),
             // Animation Settings
+            showAlgorithmDetails: true,
             renderSpeed: 10,
             isAnimating:true,
             // Algorithms
@@ -159,10 +163,13 @@ export default {
         handleMouseUp: function () {
             this.lastValidPosition = null;
         },
-        handleStart: function () {
+        handleStartMaze: function () {
             if (this.isGeneratingMaze) return;
             this.isGeneratingMaze = true;
             this.algorithm(this)();
+        },
+        handleStartSearch: function () {
+            FindDFSMaze(this, [11, 11], [31,31]);
         },
         handleStep: function () {
             this.shouldStep = true;
@@ -186,11 +193,24 @@ export default {
                 this.board[position[0]][position[1]] = this.brushValueMap.get(selectedBrush);
             }
         },
+        forceDraw: function(position, selectedBrush=this.selectedBrush, isAnimated=this.isAnimating) {
+            const brush = selectedBrush + (isAnimated? "-animated":"");
+            this.highlightCell(position, brush);
+            this.board[position[0]][position[1]] = this.brushValueMap.get(selectedBrush);
+        },
 
         // Highlight cell at position with specific colour via classname manipulation
         highlightCell: function(position, highlight) {
             const pos = `${position[0]}-${position[1]}`;
             this.$refs[pos][0].classList.value = [highlight];
+        },
+
+        // Temporary highlight cell at position with specific colour via classname manipulation
+        highlightAlgoDetailCell: function(position, highlight) {
+            const pos = `${position[0]}-${position[1]}`;
+            
+            this.$refs[pos][0].classList.remove(highlight);
+            setTimeout(()=>this.$refs[pos][0].classList.add(highlight),20);
         },
 
         // Clears the board
@@ -232,8 +252,7 @@ export default {
     }
     75% {
         border-radius: 6px;
-    }
-    
+    } 
 }
 @keyframes unvisitedAnimation {
     0%{
@@ -253,9 +272,19 @@ export default {
         transform:scale(0);
         background-color: rgb(255, 255, 255);
     }
-    
 }
-
+@keyframes detailsRedAnimation {
+    0%{
+    }
+    50% {
+        border: rgb(229, 30, 255) solid 5px;
+    }
+    75% {
+        border-radius: 2px;
+    } 
+}
+//--------------------------------------------------
+// Walls
 .wall {
     background-color: #8a66ff;
 }
@@ -263,7 +292,8 @@ export default {
     background-color: #8a66ff;
     animation: wallAnimation linear 0.4s;
 }
-
+//--------------------------------------------------
+// Unvisited
 .unvisited {
     background-color: rgb(255, 255, 255);
 }
@@ -306,7 +336,6 @@ td {
     margin: 0;
     border: 1px solid rgb(201, 200, 255);
     cursor: pointer;
-    
 }
 .start-node {
     background-color: rgb(145, 255, 0);
@@ -319,5 +348,11 @@ td {
     &:hover {
         background-color: rgba(255, 217, 49, 0.294);
     }
+}
+.red-detail {
+    animation: detailsRedAnimation linear 1s;
+}
+.temp {
+    background-color: #91ff00;
 }
 </style>

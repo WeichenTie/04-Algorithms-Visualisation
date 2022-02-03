@@ -90,6 +90,7 @@
             <button v-on:click.prevent="$emit('on-run')">Run</button>
             <button v-on:click.prevent="$emit('on-stop')">Stop</button>
             <button v-on:click.prevent="$emit('on-clear', 'unvisited')">Clear</button>
+            <button v-on:click.prevent="$emit('on-search')">Search</button>
         </form>
     </div>
 </template>

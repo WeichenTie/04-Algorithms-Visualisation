@@ -6,13 +6,9 @@ import LinkedList from "../data_structures/linked_list/LinkedList"
 
 function GenRecursiveDivisionMaze (data) {
     const tmp = async () => {
-        const a = MazeGenWrapper(data, GenMazeBorder(data));
-        await a();
-        const b = MazeGenWrapper(data, GenMazeAlternateWall(data));
-        await b()
-
-        //await MazeGenWrapper(data, GenPrimsMaze(data))();
-        console.log("done");
+        await MazeGenWrapper(data, await GenMazeBorder(data)).runAlgorithm();
+        await MazeGenWrapper(data, await GenMazeAlternateWall(data)).runAlgorithm();
+        await MazeGenWrapper(data, await GenPrimsMaze(data)).runAlgorithm();
     };
     
     return tmp

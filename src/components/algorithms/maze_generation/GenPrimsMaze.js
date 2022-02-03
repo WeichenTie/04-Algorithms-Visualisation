@@ -1,7 +1,7 @@
-import GenMazeAlternateWall from "./GenMazeAlternateWall";
-import GenMazeBorder from "./GenMazeBorder";
+import MazeGenWrapper from "./MazeGenWrapper";
+import GenFilledBoard from "./GenFilledBoard"
 
-function GenPrimsMaze (data, wallStyle=()=>{return "wall"}) {
+async function GenPrimsMaze (data, wallStyle=()=>{return "wall"}) {
     function mapper(position) {
         return position[0]*data.tableSize + position[1];
     }
@@ -10,8 +10,7 @@ function GenPrimsMaze (data, wallStyle=()=>{return "wall"}) {
     // Prims Start here 
     //
     //-----------------------------------------
-    data.fillBoard("unvisited");
-    data.fillBoard(wallStyle());
+    await MazeGenWrapper(data, await GenFilledBoard(data, "wall")).runAlgorithm();
     function inBounds(x, y) {
         return (x > 0 && x < data.tableSize - 1) && (y > 0 && y < data.tableSize - 1)
     }
@@ -35,7 +34,7 @@ function GenPrimsMaze (data, wallStyle=()=>{return "wall"}) {
         return [(a[0] + b[0])/2, (a[1] + b[1])/2];
     }
     function mapClear(position) {
-        data.draw(position, "unvisited");
+        data.forceDraw(position, "unvisited");
     }
 
     // Pick a cell mark it as part of the maze and add walls to options

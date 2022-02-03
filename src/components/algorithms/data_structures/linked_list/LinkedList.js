@@ -9,6 +9,12 @@ class LinkedList {
 
     push(value) {
         const n = new Node(value, this.tail, null)
+        if (this.length === 0) {
+            this.head = n;
+            this.tail = n;
+            this.length++;
+            return n.value;
+        }
         this.tail.next = n;
         this.tail = n;
         this.length++;
@@ -16,6 +22,16 @@ class LinkedList {
     }
 
     pop() {
+        if (this.length === 0) {
+            return null;
+        }
+        else if (this.length === 1) {
+            const n = this.head;
+            this.head = null;
+            this.tail = null;
+            this.length--;
+            return n.value;
+        }
         const n = this.tail;
         this.tail = n.prev;
         this.tail.next = null;
@@ -25,6 +41,12 @@ class LinkedList {
 
     unshift(value) {
         const n = new Node(value, null, this.head)
+        if (this.length === 0) {
+            this.head = n;
+            this.tail = n;
+            this.length++;
+            return n.value;
+        }
         this.head.prev = n;
         this.head = n;
         this.length++;
@@ -32,6 +54,16 @@ class LinkedList {
     }
 
     shift() {
+        if (this.length === 0) {
+            return null;
+        }
+        else if (this.length === 1) {
+            const n = this.head;
+            this.head = null;
+            this.tail = null;
+            this.length--;
+            return n.value;
+        }
         const n = this.head;
         this.head = n.next;
         this.head.prev = null
@@ -87,6 +119,10 @@ class LinkedList {
             }
             return n.value;
         }
+    }
+
+    isEmpty() {
+        return this.length === 0;
     }
 }
 
