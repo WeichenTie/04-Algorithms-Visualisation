@@ -1,27 +1,17 @@
 import GenMazeAlternateWall from "./GenMazeAlternateWall";
 import GenMazeBorder from "./GenMazeBorder";
 
-function GenPrimsMaze (data, endHook=()=>{}) {
-    // setup
-    let done = false;
-    const pending = {pending:true};
-    // values
-    let hook = function() {
-        pending.pending = false;
-    }
-    data.fillBoard("unvisited");
-    data.fillBoard("wall");
-
+function GenPrimsMaze (data, wallStyle=()=>{return "wall"}) {
     function mapper(position) {
         return position[0]*data.tableSize + position[1];
     }
-
     //----------------------------------------
     //
     // Prims Start here 
     //
     //-----------------------------------------
-    let inited = false;
+    data.fillBoard("unvisited");
+    data.fillBoard(wallStyle());
     function inBounds(x, y) {
         return (x > 0 && x < data.tableSize - 1) && (y > 0 && y < data.tableSize - 1)
     }
@@ -44,7 +34,6 @@ function GenPrimsMaze (data, endHook=()=>{}) {
     function getCenter(a, b) {
         return [(a[0] + b[0])/2, (a[1] + b[1])/2];
     }
-
     function mapClear(position) {
         data.draw(position, "unvisited");
     }
@@ -59,7 +48,7 @@ function GenPrimsMaze (data, endHook=()=>{}) {
     mapClear(next);
     
     const algorithmIteration = () => {
-        // if (done || !data.isRunning) return;
+        if (options.size === 0) return true;
         // pick random wall from list
         const optArr = []
         const iter = options.values();
@@ -78,15 +67,10 @@ function GenPrimsMaze (data, endHook=()=>{}) {
         }
         getNeighboursWithValue(next, -1).forEach((e) => options.set(mapper(e), e));
 
-        if (options.size === 0) {
-            clearInterval(loop);
-            done = true;
-        }
+        return options.size === 0;
     }
-    const loop = setInterval(() => {
-        if (done || !data.isRunning) return; 
-        algorithmIteration();
-    }, data.renderSpeed);
+
+    return algorithmIteration;
 }
 
 export default GenPrimsMaze

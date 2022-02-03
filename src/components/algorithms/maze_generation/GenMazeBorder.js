@@ -1,25 +1,16 @@
-function GenMazeBorder (data, endHook=()=>{}) {
-    // setup
-    let done = false;
+function GenMazeBorder (data) {
     // values
     let index = 0;
-    endHook
     const algorithmIteration = () => {
+        if (index >= data.tableSize) return true;
         data.draw([0, index], "wall");
         data.draw([index, 0], "wall");
         data.draw([data.tableSize-1, data.tableSize-index-1], "wall");
         data.draw([data.tableSize-index-1, data.tableSize-1], "wall");
         index++;
-        if (index >= data.tableSize) {
-            clearInterval(loop);
-            done = true;
-            endHook();
-        }
+        return index >= data.tableSize;
     }
-    const loop = setInterval(() => {
-        if (done || !data.isRunning) return; 
-        algorithmIteration();
-    }, data.renderSpeed);
+    return algorithmIteration;
 }
  
 export default GenMazeBorder;

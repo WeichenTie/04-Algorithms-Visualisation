@@ -14,7 +14,14 @@
             </div>
             <div class="option">
                 <label for="weight-brush">Weight</label>
-                <input type="number" id="weight-value" name="weight-value" min="0" max="100">
+                <input
+                    type="number"
+                    id="weight-value"
+                    name="weight-value"
+                    min="1"
+                    max="100"
+                    :value="weight"
+                    v-on:change="$emit('on-weight-change', ++weight)">
                 <input
                     type="radio"
                     name="brush"
@@ -67,6 +74,19 @@
                     class="brush-button"
                     v-on:change="$emit('on-brush-select', 'drag')">
             </div>
+            <div class="option">
+                <label for="renderSpeed">Simulation Speed</label>
+                <select 
+                    v-model="renderSpeed"
+                    v-on:change="$emit('on-render-speed-change',renderSpeed)">
+                    <option :value='0'>Instant</option>
+                    <option :value='10'>Faster</option>
+                    <option :value='50'>Fast</option>
+                    <option :value='100'>Normal</option>
+                    <option :value='500'>Slow</option>
+                    <option :value='-1'>Step</option>
+                </select>
+            </div>
             <button v-on:click.prevent="$emit('on-run')">Run</button>
             <button v-on:click.prevent="$emit('on-stop')">Stop</button>
             <button v-on:click.prevent="$emit('on-clear', 'unvisited')">Clear</button>
@@ -75,13 +95,10 @@
 </template>
 <script>
 export default {
-    props: {
-        
-
-    },
     data() {
         return {
-            value:""
+            weight: 1,
+            renderSpeed: 10,
         }
     },
 }
@@ -91,9 +108,9 @@ export default {
 <style lang="scss">
     $primary: #6743ee;
     .sidebar {
-        width: 300px;
-        color: var(--main-colour);
-        background-color: rgb(255, 255, 255);
+        width: 250px;
+        color: rgb(172, 83, 255);
+        background-color: rgb(224, 197, 255);
         box-shadow: 0 0 5px black;
         padding: 20px;
         form {
@@ -121,8 +138,8 @@ export default {
                 flex-direction: row;
                 align-items: center;
                 justify-content: space-between;
-                width: 200px;
-                height: 30px;
+                width: 240px;
+                height: fit-content;
             }
         }
     }

@@ -1,10 +1,9 @@
-function GenMazeAlternateWall (data, endHook=()=>{}) {
-    // setup
-    let done = false;
+function GenMazeAlternateWall (data) {
     // values
     let index = 0;
     
     const algorithmIteration = () => {
+        if (index >= data.tableSize) return true;
         for (let i = 0; i < data.tableSize; i += 4) {
             data.draw([i, index], "wall");
         }
@@ -12,16 +11,9 @@ function GenMazeAlternateWall (data, endHook=()=>{}) {
             data.draw([i, data.tableSize - 1 - index], "wall");
         }
         index += 2;
-        if (index >= data.tableSize) {
-            clearInterval(loop);
-            done = true;
-            endHook();
-        }
+        return index >= data.tableSize;
     }
-    const loop = setInterval(() => {
-        if (done || !data.isRunning) return; 
-        algorithmIteration();
-    }, data.renderSpeed);
+    return algorithmIteration;
 }
  
 export default GenMazeAlternateWall;

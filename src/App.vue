@@ -31,7 +31,10 @@ export default {
 html {
   margin: 0;
   padding: 0;
-  background-color: rgb(255, 245, 254);
+  background-image: url('./assets/background.svg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 head {

@@ -3,8 +3,10 @@
         <SidebarOptions
             @on-brush-select="selectedBrush=$event"
             @on-run="handleStart"
-            @on-stop="isRunning=false"
+            @on-stop="isGeneratingMaze=false"
             @on-clear="fillBoard"
+            @on-weight-change="weight=$event"
+            @on-render-speed-change="renderSpeed=Number($event)"
         />
         <div class='board'>
             <table :key="key">
@@ -26,13 +28,16 @@
                 </tr>
             </table>
         </div>
+        <button @click="shouldStep = true">Step</button>
     </div>
+    
 </template>
 <script lang="js">
 import SidebarOptions from './SidebarOptions';
-import GenPrimsMaze from './algorithms/maze_generation/GenPrimsMaze'
+import GenPrimsMaze from './algorithms/maze_generation/GenPrimsMaze';
 import GenMazeAlternateWall from './algorithms/maze_generation/GenMazeAlternateWall';
 import GenMazeBorder from './algorithms/maze_generation/GenMazeBorder';
+import GenRecursiveDivisionMaze from './algorithms/maze_generation/GenRecursiveDivisionMaze';
 export default {
     components: {
         SidebarOptions,
@@ -42,19 +47,25 @@ export default {
             //Testing 
             key: 1,
             // Immutable data
-            tableSize: 35,
-            cellSize: 25,
+            tableSize: 39,
+            cellSize: 20,
             maxFlags: 8,
             brushValueMap: new Map(),
             valueBrushMap: new Map(),
-            // Setting
-            isRunning: false,
-            renderSpeed: 50,
-            selectedBrush: "wall",
+            // Animation Settings
+            renderSpeed: 10,
+            isAnimating:true,
             // Algorithms
-            algorithm: null,
+            isGeneratingMaze: false,
+            isPathFinding: false,
+            shouldStep: false,
+            stepSize:1,
+            algorithm: GenRecursiveDivisionMaze,
             linker: null,
             // BoardState
+            selectedBrush: "wall",
+            weight: 1,
+            isDirty: false,
             board: [],
             flags:[],
             pathCells:[], // Cells that are highlighted to display searched areas
@@ -148,12 +159,15 @@ export default {
         handleMouseUp: function () {
             this.lastValidPosition = null;
         },
-
         handleStart: function () {
-            if (this.isRunning) return;
-            this.isRunning = true;
-            GenPrimsMaze(this);
+            if (this.isGeneratingMaze) return;
+            this.isGeneratingMaze = true;
+            this.algorithm(this)();
         },
+        handleStep: function () {
+            this.shouldStep = true;
+        },
+
         //-----------------------------------------------------
         // Algorithms
         //-----------------------------------------------------
@@ -165,7 +179,7 @@ export default {
             return this.board[position[0]][position[1]] == 0;
         },
         
-        draw: function(position, selectedBrush=this.selectedBrush, isAnimated=true) {
+        draw: function(position, selectedBrush=this.selectedBrush, isAnimated=this.isAnimating) {
             const brush = selectedBrush + (isAnimated? "-animated":"");
             if (this.isEmpty(position) || brush === "unvisited" || brush === "unvisited-animated") {
                 this.highlightCell(position, brush);
@@ -224,7 +238,7 @@ export default {
 @keyframes unvisitedAnimation {
     0%{
         transform: scale(0);
-        background-color:  #FEC8D8;
+        background-color:  #CFD1FC;
     }
     25%{
         border-radius: 15px;
@@ -242,6 +256,25 @@ export default {
     
 }
 
+.wall {
+    background-color: #8a66ff;
+}
+.wall-animated {
+    background-color: #8a66ff;
+    animation: wallAnimation linear 0.4s;
+}
+
+.unvisited {
+    background-color: rgb(255, 255, 255);
+}
+.unvisited-animated {
+    background-color: rgb(255, 255, 255);
+    animation: unvisitedAnimation linear 0.4s;
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.294);
+    }
+}
+
 .grid {
     display: flex;
     flex-direction: row;
@@ -251,18 +284,24 @@ export default {
 
 .board {
     color: black;
+    width: fit-content;
+    padding: 30px;
+    border: 20px solid #9474ff;
+    border-radius: 1rem;
+    margin: 40px auto 100px;
+    background-color: rgb(247, 227, 255);
+    box-shadow: 0 0 10px #957DAD;
 }
 table {
     table-layout: fixed;
-    border-collapse: collapse;
-    box-shadow: 0 0 10px #957DAD;
     width: fit-content;
-    margin: 40px auto 100px;
-    background-color: white;
+    border-collapse:collapse;
+    background-color: rgb(255, 255, 255);
+    
+    
 }
 td {
     box-sizing: border-box;
-    background-color: rgb(255, 255, 255);
     padding: 0;
     margin: 0;
     border: 1px solid rgb(201, 200, 255);
@@ -279,17 +318,6 @@ td {
     background-color: rgb(255, 155, 25);
     &:hover {
         background-color: rgba(255, 217, 49, 0.294);
-    }
-}
-.wall-animated {
-    background-color: #957DAD;
-    animation: wallAnimation linear 0.4s;
-}
-.unvisited-animated {
-    background-color: rgb(255, 255, 255);
-    animation: unvisitedAnimation linear 0.4s;
-    &:hover {
-        background-color: rgba(255, 255, 255, 0.294);
     }
 }
 </style>
