@@ -54,7 +54,7 @@ function FindDFSMaze(data, start, end) {
         if (equalPosition(curNode, end)) {
             let shortestPath = [];
             // Get the shortest path as a list
-            let n = visited.get(mapper(curNode));
+            let n = path.get(mapper(curNode));
             while (n != null) {
                 shortestPath.push(n.value);
                 n = n.prev;

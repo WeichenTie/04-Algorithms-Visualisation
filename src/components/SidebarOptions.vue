@@ -10,24 +10,20 @@
                     id="wall-brush" 
                     class="brush-button"
                     checked
-                    v-on:change="$emit('on-brush-select', 'wall')">
+                    @change="$emit('on-brush-select', 'wall')">
             </div>
             <div class="option">
                 <label for="weight-brush">Weight</label>
-                <input
-                    type="number"
-                    id="weight-value"
-                    name="weight-value"
-                    min="1"
-                    max="100"
-                    :value="weight"
-                    v-on:change="$emit('on-weight-change', ++weight)">
+                <VueSlider 
+                    v-model="weight"
+                    width='100px'
+                    @change="$emit('on-weight-change', Number(weight))"/>
                 <input
                     type="radio"
                     name="brush"
                     id="weight-brush"
                     class="brush-button"
-                    v-on:change="$emit('on-brush-select', 'weight')">
+                    @change="$emit('on-brush-select', 'weight')">
             </div>
             <div class="option">
                 <label for="flag-brush">Flag</label>
@@ -36,7 +32,7 @@
                     name="brush"
                     id="flag-brush"
                     class="brush-button"
-                    v-on:change="$emit('on-brush-select', 'flag')">
+                    @change="$emit('on-brush-select', 'flag')">
             </div>
             <div class="option">
                 <label for="start-node-brush">Start Node</label>
@@ -45,7 +41,7 @@
                     name="brush"
                     id="start-node-brush"
                     class="brush-button"
-                    v-on:change="$emit('on-brush-select', 'start-node')">
+                    @change="$emit('on-brush-select', 'start-node')">
             </div>
             <div class="option">
                 <label for="end-node-brush">End Node</label>
@@ -54,7 +50,7 @@
                     name="brush"
                     id="end-node-brush"
                     class="brush-button"
-                    v-on:change="$emit('on-brush-select', 'end-node')">
+                    @change="$emit('on-brush-select', 'end-node')">
             </div>
             <div class="option">
                 <label for="eraser-brush">Eraser</label>
@@ -63,7 +59,7 @@
                     name="brush"
                     id="eraser-brush"
                     class="brush-button"
-                    v-on:change="$emit('on-brush-select', 'unvisited')">
+                    @change="$emit('on-brush-select', 'unvisited')">
             </div>
             <div class="option">
                 <label for="drag-brush">Drag Tool</label>
@@ -72,13 +68,13 @@
                     name="brush"
                     id="drag-brush"
                     class="brush-button"
-                    v-on:change="$emit('on-brush-select', 'drag')">
+                    @change="$emit('on-brush-select', 'drag')">
             </div>
             <div class="option">
                 <label for="renderSpeed">Simulation Speed</label>
                 <select 
                     v-model="renderSpeed"
-                    v-on:change="$emit('on-render-speed-change',renderSpeed)">
+                    @change="$emit('on-render-speed-change',renderSpeed)">
                     <option :value='0'>Instant</option>
                     <option :value='10'>Faster</option>
                     <option :value='50'>Fast</option>
@@ -95,7 +91,13 @@
     </div>
 </template>
 <script>
+    import VueSlider from 'vue-slider-component'
+    import 'vue-slider-component/theme/antd.css'
+
 export default {
+    components: {
+        VueSlider
+    },
     data() {
         return {
             weight: 1,
@@ -109,17 +111,20 @@ export default {
 <style lang="scss">
     $primary: #6743ee;
     .sidebar {
+        position: relative;
         width: 250px;
-        color: rgb(172, 83, 255);
-        background-color: rgb(224, 197, 255);
-        box-shadow: 0 0 5px black;
+        height: fit-content;
+        border-radius: 1rem 0 0 1rem;
+        color: rgb(255, 255, 255);
+        background-color: rgb(27, 45, 83);
+        box-shadow: 0 0 10px #957DAD;
         padding: 20px;
         form {
             label {
-                font-size: 1.5em;
+                font-size: 1em;
             }
             input[type=radio] {
-                box-shadow: inset 0 0 0 1px grey;
+                box-shadow: inset 0 0 0 1px rgb(255, 255, 255);
                 width: 20px;
                 height: 20px;
                 padding: 0;
@@ -129,12 +134,11 @@ export default {
                 cursor: pointer;
                 border-radius: 100px;
                 &:checked {
-                    box-shadow: inset 0 0 0 6px $primary;
+                    box-shadow: inset 0 0 0 6px rgb(255, 255, 255);
                 }
-
-
             }
             .option {
+                margin: 5px 0;
                 display: flex;
                 flex-direction: row;
                 align-items: center;

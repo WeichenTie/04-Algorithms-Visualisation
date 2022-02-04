@@ -10,7 +10,12 @@
             @on-render-speed-change="renderSpeed=Number($event)"
         />
         <div class='board'>
-            <table :key="key">
+            <table
+                :key="key"
+                :style="{ // To satisfy mozilla browsers
+                    width: this.cellSize*this.tableSize +'px',
+                    height: this.cellSize*this.tableSize +'px'
+                }">
                 <tr v-for='(row, yIndex) in this.board' :key="yIndex" :id="'row-'+ yIndex">
                     <td v-for="(cell, xIndex) in row" 
                         :key="xIndex" 
@@ -23,14 +28,20 @@
                         :style="{
                             width: this.cellSize+'px',
                             height: this.cellSize+'px'
+                            
                         }"
                     >
                     </td>
                 </tr>
             </table>
         </div>
-        <button @click.prevent="shouldStep = true">Step</button>
-        <button @click.prevent="rerenderBoard">Rerender</button>
+        <div class="graph"
+            :style="{
+                height: this.cellSize*this.tableSize +'px'
+            }"
+        >
+
+        </div>
     </div>
     
 </template>
@@ -54,8 +65,8 @@ export default {
             //Testing 
             key: 1,
             // Immutable data
-            tableSize: 39,
-            cellSize: 20,
+            tableSize: 35,
+            cellSize: 22,
             maxFlags: 8,
             brushValueMap: new Map(),
             valueBrushMap: new Map(),
@@ -70,7 +81,7 @@ export default {
             shouldStep: false,
             stepSize:1,
             mazeAlgorithm: GenPrimsMaze,
-            pathAlgorithm: FindDFSMaze,
+            pathAlgorithm: FindBFSMaze,
             linkerAlgorithm: null,
             // BoardState
             selectedBrush: "wall",
@@ -155,6 +166,7 @@ export default {
         },
         handleMouseEnter: function (event) {
             if (this.isGeneratingMaze) return;
+            if (this.isPathFinding) return;
             if (event.buttons !== 1) return; // Returns if not left click
             let position = event.target.id.split('-').map(pos => {
                 return Number(pos);
@@ -174,6 +186,7 @@ export default {
             }
         },
         handleMouseUp: function () {
+            console.log(this.weight);
             this.lastValidPosition = null;
         },
         handleStartMaze: async function () {
@@ -220,10 +233,11 @@ export default {
                 if (this.endingPosition !== null) return;
                 this.endingPosition = position;
             }
-            if (selectedBrush === "start-node") {
+            else if (selectedBrush === "start-node") {
                 if (this.startingPosition !== null) return;
                 this.startingPosition = position;
             }
+            this.rerenderBoard();
             this.highlightCell(position, brush);
             this.board[position[0]][position[1]] = this.brushValueMap.get(selectedBrush);
         },
@@ -256,7 +270,6 @@ export default {
         // Rerendering functions
         //-----------------------------------------------------
         rerenderBoard: function() {
-            console.log("erasing");
             while (this.tracerMarks.length > 0) {
                 const pos = this.tracerMarks.pop();
                 //const list = this.$refs[pos][0].classList.value.split(" ");
@@ -276,6 +289,9 @@ export default {
 </script>
 
 <style lang="scss">
+$table-radius: 10px;
+
+
 @keyframes wallAnimation {
     0%{
         transform: scale(0);
@@ -358,35 +374,54 @@ export default {
 }
 
 .grid {
+    margin-top: 40px;
+    position: relative;
     display: flex;
     flex-direction: row;
-    width: 100%;
     justify-content: space-around;
 }
 
 .board {
     color: black;
     width: fit-content;
-    padding: 30px;
-    border: 20px solid #9474ff;
-    border-radius: 1rem;
-    margin: 40px auto 100px;
-    background-color: rgb(247, 227, 255);
+    padding: 5px;
+    border: 6px solid #1f1f1f;
+    border-radius: 0 15px 15px;
+    margin: 0 auto 100px;
+    background-color: rgb(255, 255, 255);
     box-shadow: 0 0 10px #957DAD;
 }
 table {
     table-layout: fixed;
-    width: fit-content;
     border-collapse:collapse;
     background-color: rgb(255, 255, 255);
-    
-    
+    box-sizing: border-box;
+    :first-child {
+        :first-child {
+            border-radius: $table-radius 0 0 0;
+        }
+        :last-child {
+            border-radius: 0 $table-radius 0 0;
+        }
+    }
+    :last-child {
+        :first-child {
+            border-radius: 0 0 0 $table-radius;
+        }
+        :last-child {
+            border-radius: 0 0 $table-radius 0;
+        }
+    }
+}
+tr {
+    box-sizing: content-box;
+    width: 100%;
 }
 td {
+    border: #1f1f1f5b 1px dotted;
     box-sizing: border-box;
     padding: 0;
     margin: 0;
-    border: 1px solid rgb(201, 200, 255);
     cursor: pointer;
 }
 .start-node {
@@ -422,7 +457,7 @@ td {
 }
 
 .temp1 {
-    background-color: #eeff00;
+    background-color: #ffd900;
 }
 .temp2 {
     animation: searchingAnimation linear 0.4s;
@@ -431,4 +466,11 @@ td {
 .temp3 {
     background-color: #2f00ff;
 }
+
+//------------------------------------------------------
+.graph {
+    width: 400px;
+    background-color: #1f1f1f;
+}
+
 </style>

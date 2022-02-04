@@ -25,13 +25,14 @@ export default {
 <style lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100;200;300;400;500;600;700;800;900&display=swap');
 :root {
-  --main-colour: rgb(189,212,234);
+  --main-colour: rgb(47, 117, 184);
   --complement-colour: #FFD585;
 }
 html {
   margin: 0;
   padding: 0;
-  background-image: url('./assets/background.svg');
+  background-color: aliceblue;
+  //background-image: url("./assets/background.svg");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -51,6 +52,7 @@ body {
 
 h1 {
     background-color: var(--main-colour);
+    color: white;
     display:block;
     margin: 0;
     width: 100%;
@@ -58,9 +60,6 @@ h1 {
     text-align: center;
     transition: ease-in 0.2s;
     cursor: pointer;
-    &:hover {
-        color: var(--complement-colour);
-    }
 }
 
 #app {
