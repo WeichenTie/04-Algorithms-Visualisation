@@ -30,6 +30,7 @@
             </table>
         </div>
         <button @click.prevent="shouldStep = true">Step</button>
+        <button @click.prevent="rerenderBoard">Rerender</button>
     </div>
     
 </template>
@@ -41,6 +42,9 @@ import GenMazeBorder from './algorithms/maze_generation/GenMazeBorder';
 import GenRecursiveDivisionMaze from './algorithms/maze_generation/GenRecursiveDivisionMaze';
 import FindBFSMaze from './algorithms/pathfinding/FindBFSMaze';
 import FindDFSMaze from './algorithms/pathfinding/FindDFSMaze';
+import MazeGenWrapper from './algorithms/maze_generation/MazeGenWrapper';
+import GenFilledBoard from './algorithms/maze_generation/GenFilledBoard';
+import PathfindingWrapper from './algorithms/pathfinding/PathfindingWrapper';
 export default {
     components: {
         SidebarOptions,
@@ -59,13 +63,15 @@ export default {
             showAlgorithmDetails: true,
             renderSpeed: 10,
             isAnimating:true,
+            tracerMarks:[],
             // Algorithms
             isGeneratingMaze: false,
             isPathFinding: false,
             shouldStep: false,
             stepSize:1,
-            algorithm: GenRecursiveDivisionMaze,
-            linker: null,
+            mazeAlgorithm: GenPrimsMaze,
+            pathAlgorithm: FindDFSMaze,
+            linkerAlgorithm: null,
             // BoardState
             selectedBrush: "wall",
             weight: 1,
@@ -132,8 +138,11 @@ export default {
         //-----------------------------------------------------
         // Actions taken when a cell is pressed
         handleMouseDown: function (event){
+            if (this.isGeneratingMaze) return;
             if (event.buttons !== 1) return; // Returns if not left click
-            const position = event.target.id.split('-');
+            let position = event.target.id.split('-').map(pos => {
+                return Number(pos);
+            });
             // Dragging behaviour
             if (this.selectedBrush === "drag") {
                 if (this.isEmpty(position)) return;
@@ -144,15 +153,19 @@ export default {
                 this.draw(position);
             }
         },
-        handleMouseEnter: function (event){
+        handleMouseEnter: function (event) {
+            if (this.isGeneratingMaze) return;
             if (event.buttons !== 1) return; // Returns if not left click
-            const position = event.target.id.split('-');
+            let position = event.target.id.split('-').map(pos => {
+                return Number(pos);
+            });
             if (this.selectedBrush === "drag") {
                 if (this.lastValidPosition === null) return;
                 else if (!this.isEmpty(position)) return;
-                
-                this.draw(position, this.valueBrushMap.get(this.board[this.lastValidPosition[0]][this.lastValidPosition[1]]));
+                this.rerenderBoard();
+                const lastValPosBrush = this.valueBrushMap.get(this.board[this.lastValidPosition[0]][this.lastValidPosition[1]]);
                 this.draw(this.lastValidPosition, "unvisited");
+                this.draw(position, lastValPosBrush);
                 this.lastValidPosition = position;
             }
             // Drawing behaviour
@@ -163,13 +176,17 @@ export default {
         handleMouseUp: function () {
             this.lastValidPosition = null;
         },
-        handleStartMaze: function () {
+        handleStartMaze: async function () {
             if (this.isGeneratingMaze) return;
             this.isGeneratingMaze = true;
-            this.algorithm(this)();
+            this.rerenderBoard();
+            await MazeGenWrapper(this, await this.mazeAlgorithm(this), ()=>{this.isGeneratingMaze = false}).runAlgorithm();
         },
-        handleStartSearch: function () {
-            FindDFSMaze(this, [11, 11], [31,31]);
+        handleStartSearch: async function () {
+            if (this.isPathFinding) return;
+            this.isPathFinding = true;
+            this.rerenderBoard();
+            await PathfindingWrapper(this, await this.pathAlgorithm(this, this.startingPosition, this.endingPosition), ()=>{this.isPathFinding = false}).runAlgorithm();
         },
         handleStep: function () {
             this.shouldStep = true;
@@ -187,14 +204,26 @@ export default {
         },
         
         draw: function(position, selectedBrush=this.selectedBrush, isAnimated=this.isAnimating) {
-            const brush = selectedBrush + (isAnimated? "-animated":"");
-            if (this.isEmpty(position) || brush === "unvisited" || brush === "unvisited-animated") {
-                this.highlightCell(position, brush);
-                this.board[position[0]][position[1]] = this.brushValueMap.get(selectedBrush);
+            if ((this.isEmpty(position) || selectedBrush === "unvisited")) {
+                this.forceDraw(position, selectedBrush, isAnimated)
             }
         },
         forceDraw: function(position, selectedBrush=this.selectedBrush, isAnimated=this.isAnimating) {
             const brush = selectedBrush + (isAnimated? "-animated":"");
+            if (this.board[position[0]][position[1]] === -2) { // start node
+                this.startingPosition = null;
+            }
+            else if (this.board[position[0]][position[1]] === -3) {
+                this.endingPosition = null;
+            }
+            if (selectedBrush === "end-node") {
+                if (this.endingPosition !== null) return;
+                this.endingPosition = position;
+            }
+            if (selectedBrush === "start-node") {
+                if (this.startingPosition !== null) return;
+                this.startingPosition = position;
+            }
             this.highlightCell(position, brush);
             this.board[position[0]][position[1]] = this.brushValueMap.get(selectedBrush);
         },
@@ -208,9 +237,11 @@ export default {
         // Temporary highlight cell at position with specific colour via classname manipulation
         highlightAlgoDetailCell: function(position, highlight) {
             const pos = `${position[0]}-${position[1]}`;
-            
-            this.$refs[pos][0].classList.remove(highlight);
-            setTimeout(()=>this.$refs[pos][0].classList.add(highlight),20);
+            const list = this.$refs[pos][0].classList.value.split(" ");
+            if (list[0].includes("unvisited")) {
+                this.tracerMarks.push(pos);
+                this.$refs[pos][0].classList.value = `${list[0]} ${highlight}`;
+            }
         },
 
         // Clears the board
@@ -224,10 +255,14 @@ export default {
         //-----------------------------------------------------
         // Rerendering functions
         //-----------------------------------------------------
-        reRenderBoard: function(cellsToClear) {
-            cellsToClear.forEach(element => {
-                console.log(this.board + " : " + element);
-            });
+        rerenderBoard: function() {
+            console.log("erasing");
+            while (this.tracerMarks.length > 0) {
+                const pos = this.tracerMarks.pop();
+                //const list = this.$refs[pos][0].classList.value.split(" ");
+                this.$refs[pos][0].classList.value = "unvisited" ;//`${list[0]}`;
+            }
+            this.tracerMarks = [];
         },
         trueRerenderBoard: function() {
             this.board.forEach((row)=>console.log(row));
@@ -275,12 +310,29 @@ export default {
 }
 @keyframes detailsRedAnimation {
     0%{
+        transform: scale(0);
+    }
+    25% {
+        border-radius: 15px;
     }
     50% {
         border: rgb(229, 30, 255) solid 5px;
     }
     75% {
-        border-radius: 2px;
+        border-radius: 6px;
+    } 
+}
+@keyframes searchingAnimation {
+    0%{
+        transform: scale(0);
+        border-radius: 15px;
+        background-color: #ffce2f;
+    }
+    50% {
+        transform: scale(1.3);
+    }
+    75% {
+        background-color: #9900ff;
     } 
 }
 //--------------------------------------------------
@@ -349,10 +401,34 @@ td {
         background-color: rgba(255, 217, 49, 0.294);
     }
 }
+
+.start-node-animated {
+    background-color: rgb(145, 255, 0);
+    &:hover {
+        background-color: rgba(49, 255, 159, 0.863);
+    }
+}
+.end-node-animated {
+    background-color: rgb(255, 155, 25);
+    &:hover {
+        background-color: rgba(255, 217, 49, 0.294);
+    }
+}
 .red-detail {
     animation: detailsRedAnimation linear 1s;
 }
 .temp {
-    background-color: #91ff00;
+    background-color: #cdff8b;
+}
+
+.temp1 {
+    background-color: #eeff00;
+}
+.temp2 {
+    animation: searchingAnimation linear 0.4s;
+    background-color: #cdfffb;
+}
+.temp3 {
+    background-color: #2f00ff;
 }
 </style>

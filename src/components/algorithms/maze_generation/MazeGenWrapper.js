@@ -1,46 +1,50 @@
-function MazeGenWrapper(data, algorithm) {
+function MazeGenWrapper(data, algorithm, endAction=(()=>{})) {
+    let done = false;
+
     const timedLoop = async () => {
         return new Promise((resolve, reject) => {
             const runTimedLoop = async () => {
                 // Maze Generation completely stopped
                 if (!data.isGeneratingMaze) {
                     clearTimeout(timeout);
-                    resolve(true);
+                    resolve();
                 }
                 // Set to instant render
                 else if (data.renderSpeed === 0) {
                     clearTimeout(timeout);
-                    instantLoop();
-                    resolve(true);
+                    await runAlgorithm();
+                    resolve();
                 }
                 // Set to step mode
                 else if (data.renderSpeed === -1) {
-                    await stepLoop();
                     clearTimeout(timeout);
-                    resolve(false);
+                    await runAlgorithm();
+                    resolve();
                 }
                 // Run algorithm and check if it is done
-                else if (algorithm()) {
-                    clearTimeout(timeout);
-                    resolve(true);
-                }
                 else {
-                    timeout = setTimeout(() => runTimedLoop(), data.renderSpeed);
+                    if (stepper()) {
+                        clearTimeout(timeout);
+                        resolve();
+                    } else {
+                        timeout = setTimeout(() => runTimedLoop(), data.renderSpeed);
+                    }
                 }
             }
             let timeout = setTimeout(() => runTimedLoop(), data.renderSpeed);
         });
     }
-
     const instantLoop = () => {
         while (!algorithm()) {
             continue;
         }
+        done = true;
     }
 
     const stepper = () => {
         for (let i = 0; i < data.stepSize; i++) {
             if (algorithm()) {
+                done = true;
                 return true;
             }
         }
@@ -52,25 +56,25 @@ function MazeGenWrapper(data, algorithm) {
             const interval = setInterval(async () => {
                 // Maze Generation completely stopped
                 if (!data.isGeneratingMaze) {
-                    resolve(true);
+                    resolve();
                     clearInterval(interval);
                 }
                 // Set to instant render
                 else if (data.renderSpeed === 0) {
-                    instantLoop()
                     clearInterval(interval);
-                    resolve(true);
+                    await runAlgorithm();
+                    resolve();
                 }
-                // Set to instant render
+                // Set to timed render
                 else if (data.renderSpeed !== -1) {
-                    await timedLoop();
                     clearInterval(interval);
-                    resolve(false);
+                    await runAlgorithm();
+                    resolve();
                 }
                 // Run algorithm and check if it is done
                 else if (data.shouldStep) {
                     if (stepper()) {
-                        resolve(true);
+                        resolve();
                         clearInterval(interval);
                     }
                     data.shouldStep = false;
@@ -79,18 +83,18 @@ function MazeGenWrapper(data, algorithm) {
         });
     }
     const runAlgorithm = async () => {
-        let {done} = {done : false};
         if (data.renderSpeed === 0) {
             instantLoop();
-            done = true;
         }
         else if (data.renderSpeed === -1) {
-            await stepLoop().then((e) => {done = e});
+            await stepLoop();
         }
         else {
-            await timedLoop().then((e) => {done = e});
+            await timedLoop();
         }
-
+        if (done) {
+            endAction();
+        }
     }
     return { runAlgorithm, instantLoop };
 }
