@@ -54,10 +54,9 @@ function FindDFSMaze(data, start, end) {
             clearInterval(inter);
             return true;
         }
+        visit(curNode);
         const neighbours = getUnvisitedNeighboursWithValue(curNode, 0);
         neighbours.forEach(neighbour => {
-            console.log(hasVisited(neighbour));
-            visit(neighbour);
             stack.push(neighbour);
         });
     }
