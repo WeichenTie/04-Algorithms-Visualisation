@@ -31,7 +31,7 @@ export default {
 html {
   margin: 0;
   padding: 0;
-  background-color: aliceblue;
+  background-color: rgb(255, 255, 255);
   //background-image: url("./assets/background.svg");
   background-size: cover;
   background-repeat: no-repeat;
@@ -47,7 +47,6 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Roboto Slab', serif;
-  overflow-x: hidden;
 }
 
 h1 {

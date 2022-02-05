@@ -11,10 +11,10 @@
         />
         <div class='board'>
             <table
-                :key="key"
                 :style="{ // To satisfy mozilla browsers
                     width: this.cellSize*this.tableSize +'px',
-                    height: this.cellSize*this.tableSize +'px'
+                    height: this.cellSize*this.tableSize +'px',
+                    cursor: this.getCursorStyle()
                 }">
                 <tr v-for='(row, yIndex) in this.board' :key="yIndex" :id="'row-'+ yIndex">
                     <td v-for="(cell, xIndex) in row" 
@@ -27,8 +27,7 @@
                         v-on:mouseup="handleMouseUp()"
                         :style="{
                             width: this.cellSize+'px',
-                            height: this.cellSize+'px'
-                            
+                            height: this.cellSize+'px',
                         }"
                     >
                     </td>
@@ -62,19 +61,19 @@ export default {
     },
     data() {
         return {
-            //Testing 
-            key: 1,
             // Immutable data
             tableSize: 35,
             cellSize: 22,
             maxFlags: 8,
             brushValueMap: new Map(),
             valueBrushMap: new Map(),
+            // Events
             // Animation Settings
             showAlgorithmDetails: true,
             renderSpeed: 10,
             isAnimating:true,
             tracerMarks:[],
+            isDragging: false,
             // Algorithms
             isGeneratingMaze: false,
             isPathFinding: false,
@@ -115,10 +114,8 @@ export default {
         this.board = this.newBoard();
 
         // Init starting and ending positions
-        //this.startingPosition = [(this.tableSize - 1) / 2, (this.tableSize - 1) / 2 - 1];
-        //this.endingPosition = [(this.tableSize - 1) / 2, (this.tableSize - 1) / 2 + 1];
-        this.startingPosition = [0,0];
-        this.endingPosition = [0,1];
+        this.startingPosition = [(this.tableSize - 1) / 2, (this.tableSize - 1) / 2 - 10];
+        this.endingPosition = [(this.tableSize - 1) / 2, (this.tableSize - 1) / 2 + 10];
         
     },
     mounted(){
@@ -149,14 +146,15 @@ export default {
         //-----------------------------------------------------
         // Actions taken when a cell is pressed
         handleMouseDown: function (event){
-            if (this.isGeneratingMaze) return;
             if (event.buttons !== 1) return; // Returns if not left click
+            if (this.isGeneratingMaze || this.isPathFinding) return;
             let position = event.target.id.split('-').map(pos => {
                 return Number(pos);
             });
             // Dragging behaviour
             if (this.selectedBrush === "drag") {
                 if (this.isEmpty(position)) return;
+                this.isDragging = true;
                 this.lastValidPosition = position;
             }
             // Drawing behaviour
@@ -165,8 +163,7 @@ export default {
             }
         },
         handleMouseEnter: function (event) {
-            if (this.isGeneratingMaze) return;
-            if (this.isPathFinding) return;
+            if (this.isGeneratingMaze || this.isPathFinding) return;
             if (event.buttons !== 1) return; // Returns if not left click
             let position = event.target.id.split('-').map(pos => {
                 return Number(pos);
@@ -186,8 +183,8 @@ export default {
             }
         },
         handleMouseUp: function () {
-            console.log(this.weight);
             this.lastValidPosition = null;
+            this.isDragging = false;
         },
         handleStartMaze: async function () {
             if (this.isGeneratingMaze) return;
@@ -281,6 +278,21 @@ export default {
             this.board.forEach((row)=>console.log(row));
         },
 
+        //-----------------------------------------------------
+        // Styling functions
+        //-----------------------------------------------------
+        getCursorStyle: function() {
+            if (this.isGeneratingMaze || this.isPathFinding) {
+                return "not-allowed";
+            }
+            else if (this.selectedBrush === "drag") {
+                if (this.isDragging) return 'grabbing';
+                else return "grab";
+            }
+            else {
+                return "pointer"
+            }
+        }
     },
 }
 
@@ -342,13 +354,17 @@ $table-radius: 10px;
     0%{
         transform: scale(0);
         border-radius: 15px;
-        background-color: #ffce2f;
+        background-color: #9900ff;
     }
+    25% {
+        
+        }
     50% {
         transform: scale(1.3);
+        background-color: #ab2dff;
     }
     75% {
-        background-color: #9900ff;
+        background-color: #ffd038;
     } 
 }
 //--------------------------------------------------
@@ -422,7 +438,6 @@ td {
     box-sizing: border-box;
     padding: 0;
     margin: 0;
-    cursor: pointer;
 }
 .start-node {
     background-color: rgb(145, 255, 0);
@@ -460,7 +475,7 @@ td {
     background-color: #ffd900;
 }
 .temp2 {
-    animation: searchingAnimation linear 0.4s;
+    animation: searchingAnimation ease-in 0.4s;
     background-color: #cdfffb;
 }
 .temp3 {

@@ -1,8 +1,6 @@
 import LinkedList from "../data_structures/linked_list/LinkedList";
 import Node from "../data_structures/linked_list/Node"
 function FindBFSMaze(data, start, end) {
-    console.log(start);
-    console.log(end);
     function mapper(position) {
         return position[0] * data.tableSize + position[1];
     }

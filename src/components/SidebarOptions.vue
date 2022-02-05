@@ -1,6 +1,6 @@
 <template lang="">
     <div class="sidebar">
-        <h2>Settings</h2>
+        <h2>Tools</h2>
         <form>
             <div class="option">
                 <label for="wall-brush">Wall</label>
@@ -16,6 +16,8 @@
                 <label for="weight-brush">Weight</label>
                 <VueSlider 
                     v-model="weight"
+                    :min="1"
+                    :max="100"
                     width='100px'
                     @change="$emit('on-weight-change', Number(weight))"/>
                 <input
@@ -70,9 +72,15 @@
                     class="brush-button"
                     @change="$emit('on-brush-select', 'drag')">
             </div>
+
+        </form>
+        <form>
+            <h2>Settings</h2>
             <div class="option">
-                <label for="renderSpeed">Simulation Speed</label>
+                <label for="renderSpeed">Simulation Speed: </label>
                 <select 
+                    class="drop-down"
+                    id="renderSpeed"
                     v-model="renderSpeed"
                     @change="$emit('on-render-speed-change',renderSpeed)">
                     <option :value='0'>Instant</option>
@@ -82,6 +90,13 @@
                     <option :value='500'>Slow</option>
                     <option :value='-1'>Step</option>
                 </select>
+            </div>
+            <div class="option">
+                <label for="live-mode">Live Mode:</label>
+                <PillToggleSwitchVue
+                    id="live-mode"
+                />
+
             </div>
             <button v-on:click.prevent="$emit('on-run')">Run</button>
             <button v-on:click.prevent="$emit('on-stop')">Stop</button>
@@ -93,10 +108,12 @@
 <script>
     import VueSlider from 'vue-slider-component'
     import 'vue-slider-component/theme/antd.css'
+    import PillToggleSwitchVue from './layoutComponents/PillToggleSwitch/PillToggleSwitch.vue'
 
 export default {
     components: {
-        VueSlider
+        VueSlider,
+        PillToggleSwitchVue
     },
     data() {
         return {
@@ -108,7 +125,7 @@ export default {
 
 
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
     $primary: #6743ee;
     .sidebar {
         position: relative;
@@ -121,7 +138,7 @@ export default {
         padding: 20px;
         form {
             label {
-                font-size: 1em;
+                font-size: 15px;
             }
             input[type=radio] {
                 box-shadow: inset 0 0 0 1px rgb(255, 255, 255);
@@ -138,13 +155,16 @@ export default {
                 }
             }
             .option {
-                margin: 5px 0;
+                margin: 7px 0;
                 display: flex;
                 flex-direction: row;
                 align-items: center;
                 justify-content: space-between;
                 width: 240px;
                 height: fit-content;
+                .drop-down {
+                    transition: 1 ease;
+                }
             }
         }
     }

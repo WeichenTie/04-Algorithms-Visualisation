@@ -1,32 +1,29 @@
-class WeightedBiGraph {
-    constructor(vertices) {
-        this.adjacencyMatrix = []
-        this.verticesList = [];
-        
-        this.initGraph(vertices);
+class Graph {
+    constructor() {
+        this.adjacencyList = new Map();
     }
-
-    initGraph(vertices) {
-        for(let i = 0; i <vertices; i++) {
-        let row = [];
-            for (let j = 0; j < vertices; j++) {
-                row.push(0);
-            }
-            this.adjacencyMatrix.push(row);
-        }
-    }
-
-
     addVertex(vertex) {
-        verticesList.push(vertex);
+        this.adjacencyList.set(vertex, new Map());
     }
-    addForwardEdge(start, end, weight) {
-        
+    removeVertex(vertex) {
+        for (let verts of this.adjacencyList.keys()) {
+            if (verts === vertex) continue;
+            for (let vert of this.adjacencyList.get(verts).keys()) {
+                this.removeEdge(verts, vertex);
+            }
+        }
+        this.adjacencyList.delete(vertex);
     }
-    addBidirectionalEdge(v1, v2, weight) {
-        addForwardEdge(v1, v2, weight);
-        addForwardEdge(v2, v1, weight);
+    addEdge(src, dest, weight) {
+        this.adjacencyList.get(src).set(dest, weight);
+    }
+    removeEdge(src, dest) {
+        this.adjacencyList.get(src).delete(dest);
+    }
+    getEdgeWeight(src, dest) {
+        return this.adjacencyList.get(src).get(dest)
+    }
+    getOutboundEdges(vertex) {
+        return this.adjacencyList.get(vertex).entries();
     }
 }
-
-export default WeightedBiGraph;
