@@ -25,8 +25,10 @@ export default {
 <style lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100;200;300;400;500;600;700;800;900&display=swap');
 :root {
-  --main-colour: rgb(47, 117, 184);
+  --main-colour: rgb(27, 45, 83);
   --complement-colour: #FFD585;
+  --font-family: 'Roboto Slab', serif;
+
 }
 html {
   margin: 0;

@@ -1,14 +1,18 @@
 <template lang="">
     <div class="grid">
+        <!-- START OF HORRIBLE CODE  -->
         <SidebarOptions
             @on-brush-select="selectedBrush=$event"
-            @on-run="handleStartMaze"
+            @on-generate-maze="handleStartMaze"
             @on-search="handleStartSearch"
             @on-stop="isGeneratingMaze=false"
             @on-clear="fillBoard"
             @on-weight-change="weight=$event"
             @on-render-speed-change="renderSpeed=Number($event)"
+            @on-toggle-grid="isGridShowing=Boolean($event)"
+            @on-toggle-animation="isAnimating=Boolean($event)"
         />
+        <!-- END OF HORRIBLE CODE  -->
         <div class='board'>
             <table
                 :style="{ // To satisfy mozilla browsers
@@ -28,6 +32,7 @@
                         :style="{
                             width: this.cellSize+'px',
                             height: this.cellSize+'px',
+                            border: this.isGridShowing ? '#1f1f1f5b 1px dotted' : 'none',
                         }"
                     >
                     </td>
@@ -63,7 +68,7 @@ export default {
         return {
             // Immutable data
             tableSize: 35,
-            cellSize: 22,
+            cellSize: 25,
             maxFlags: 8,
             brushValueMap: new Map(),
             valueBrushMap: new Map(),
@@ -74,6 +79,8 @@ export default {
             isAnimating:true,
             tracerMarks:[],
             isDragging: false,
+            // UI
+            isGridShowing: true,
             // Algorithms
             isGeneratingMaze: false,
             isPathFinding: false,
@@ -434,7 +441,6 @@ tr {
     width: 100%;
 }
 td {
-    border: #1f1f1f5b 1px dotted;
     box-sizing: border-box;
     padding: 0;
     margin: 0;

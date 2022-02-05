@@ -18,7 +18,7 @@
                     v-model="weight"
                     :min="1"
                     :max="100"
-                    width='100px'
+                    width='150px'
                     @change="$emit('on-weight-change', Number(weight))"/>
                 <input
                     type="radio"
@@ -72,10 +72,12 @@
                     class="brush-button"
                     @change="$emit('on-brush-select', 'drag')">
             </div>
-
+            <div class="option">
+                <button v-on:click.prevent="$emit('on-clear', 'unvisited')">Clear Board</button>
+            </div>
         </form>
         <form>
-            <h2>Settings</h2>
+            <h2>General Settings</h2>
             <div class="option">
                 <label for="renderSpeed">Simulation Speed: </label>
                 <select 
@@ -96,12 +98,44 @@
                 <PillToggleSwitchVue
                     id="live-mode"
                 />
-
             </div>
-            <button v-on:click.prevent="$emit('on-run')">Run</button>
-            <button v-on:click.prevent="$emit('on-stop')">Stop</button>
-            <button v-on:click.prevent="$emit('on-clear', 'unvisited')">Clear</button>
-            <button v-on:click.prevent="$emit('on-search')">Search</button>
+            <div class="option">
+                <label for="grid-view">Toggle Grid:</label>
+                <PillToggleSwitchVue
+                    id="grid-view"
+                    @on-toggle="$emit('on-toggle-grid', $event)"
+                />
+            </div>
+            <div class="option">
+                <label for="toggle-animations">Toggle Animations:</label>
+                <PillToggleSwitchVue
+                    id="toggle-animations"
+                    @on-toggle="$emit('on-toggle-animation', $event)"
+                />
+            </div>
+            
+        </form>
+        <form>
+            <h2>Algorithm Settings</h2>
+            <div class="option">
+                <label>Pathfinder: </label>
+                <select></select>
+            </div>
+            <div class="option">
+                <label>Maze Generation: </label>
+                <select></select>
+            </div>
+            <div class="option">
+                <label>Graph: </label>
+                <select></select>
+            </div>
+            <div class="run-algo">
+                <button v-on:click.prevent="$emit('on-generate-maze')">Generate Maze</button>
+                <div></div>
+                <button v-on:click.prevent="$emit('on-search')">Search</button>
+                <div></div>
+                <button v-on:click.prevent="$emit('on-stop')">Stop</button>
+            </div>
         </form>
     </div>
 </template>
@@ -126,14 +160,17 @@ export default {
 
 </script>
 <style lang="scss" scoped>
-    $primary: #6743ee;
+    $primary: rgb(27, 45, 83);
     .sidebar {
+        h2 {
+            margin-bottom: 0;
+        }
         position: relative;
-        width: 250px;
+        width: 280px;
         height: fit-content;
         border-radius: 1rem 0 0 1rem;
         color: rgb(255, 255, 255);
-        background-color: rgb(27, 45, 83);
+        background-color: $primary;
         box-shadow: 0 0 10px #957DAD;
         padding: 20px;
         form {
@@ -160,12 +197,30 @@ export default {
                 flex-direction: row;
                 align-items: center;
                 justify-content: space-between;
-                width: 240px;
+                width: 280px;
                 height: fit-content;
                 .drop-down {
                     transition: 1 ease;
                 }
             }
         }
+    }
+    .run-algo {
+        display: flex;
+        margin: 5px auto;
+        width: 100%;
+        flex-direction: column;
+    }
+    select {
+        width: 140px;
+        font-family: var(--font-family);
+    }
+    button {
+        width: 100%;
+        height: 30px;
+        margin: 5px auto;
+        font-family: var(--font-family);
+        background-color: #ffffff;
+        border-radius: 5px;
     }
 </style>
