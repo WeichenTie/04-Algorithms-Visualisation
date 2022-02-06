@@ -57,6 +57,7 @@ import GenMazeBorder from './algorithms/maze_generation/GenMazeBorder';
 import GenRecursiveDivisionMaze from './algorithms/maze_generation/GenRecursiveDivisionMaze';
 import FindBFSMaze from './algorithms/pathfinding/FindBFSMaze';
 import FindDFSMaze from './algorithms/pathfinding/FindDFSMaze';
+import FindAStarMaze from './algorithms/pathfinding/FindAStarMaze';
 import FindBestFSMaze from './algorithms/pathfinding/FindBestFSMaze';
 import MazeGenWrapper from './algorithms/maze_generation/MazeGenWrapper';
 import GenFilledBoard from './algorithms/maze_generation/GenFilledBoard';
@@ -89,7 +90,7 @@ export default {
             shouldStep: false,
             stepSize:1,
             mazeAlgorithm: GenPrimsMaze,
-            pathAlgorithm: FindDFSMaze,
+            pathAlgorithm: FindAStarMaze,
             linkerAlgorithm: null,
             // BoardState
             selectedBrush: "wall",
