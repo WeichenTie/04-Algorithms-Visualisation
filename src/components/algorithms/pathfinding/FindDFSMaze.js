@@ -35,7 +35,7 @@ function FindDFSMaze(data, start, end) {
         if (inBounds(position[1], position[0] - 1) && data.board[position[0] - 1][position[1]] !== -1 && !hasVisited([position[0] - 1, position[1]])) {
             neighbours.push([position[0] - 1, position[1]]);
         }
-        return neighbours;
+        return neighbours.sort(() => (Math.random() > .5) ? 1 : -1);
     }
 
     const path = new Map();

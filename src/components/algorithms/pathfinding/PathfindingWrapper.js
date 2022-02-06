@@ -115,9 +115,7 @@ function PathfindingWrapper(data, algorithm, endAction = ()=>{}) {
         else {
             await timedLoop();
         }
-        if (done) {
-            endAction();
-        }
+        return shortestPath;
     }
     return { runAlgorithm, instantLoop };
 }

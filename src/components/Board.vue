@@ -57,9 +57,11 @@ import GenMazeBorder from './algorithms/maze_generation/GenMazeBorder';
 import GenRecursiveDivisionMaze from './algorithms/maze_generation/GenRecursiveDivisionMaze';
 import FindBFSMaze from './algorithms/pathfinding/FindBFSMaze';
 import FindDFSMaze from './algorithms/pathfinding/FindDFSMaze';
+import FindBestFSMaze from './algorithms/pathfinding/FindBestFSMaze';
 import MazeGenWrapper from './algorithms/maze_generation/MazeGenWrapper';
 import GenFilledBoard from './algorithms/maze_generation/GenFilledBoard';
 import PathfindingWrapper from './algorithms/pathfinding/PathfindingWrapper';
+import SearchRuntimeManager from './algorithms/search_runtime_manager/SearchRuntimeManager';
 export default {
     components: {
         SidebarOptions,
@@ -87,14 +89,14 @@ export default {
             shouldStep: false,
             stepSize:1,
             mazeAlgorithm: GenPrimsMaze,
-            pathAlgorithm: FindBFSMaze,
+            pathAlgorithm: FindDFSMaze,
             linkerAlgorithm: null,
             // BoardState
             selectedBrush: "wall",
             weight: 1,
             isDirty: false,
             board: [],
-            flags:[],
+            flags: [],
             pathCells:[], // Cells that are highlighted to display searched areas
             startingPosition: null,
             endingPosition: null,
@@ -126,10 +128,8 @@ export default {
         
     },
     mounted(){
-        this.highlightCell(this.startingPosition, "start-node");
-        this.highlightCell(this.endingPosition, "end-node");
-        this.board[this.startingPosition[0]][this.startingPosition[1]] = this.brushValueMap.get("start-node");
-        this.board[this.endingPosition[0]][this.endingPosition[1]] = this.brushValueMap.get("end-node");
+        this.forceDraw(this.startingPosition, "start-node");
+        this.forceDraw(this.endingPosition, "end-node");
     },
 
     methods: {
@@ -203,7 +203,8 @@ export default {
             if (this.isPathFinding) return;
             this.isPathFinding = true;
             this.rerenderBoard();
-            await PathfindingWrapper(this, await this.pathAlgorithm(this, this.startingPosition, this.endingPosition), ()=>{this.isPathFinding = false}).runAlgorithm();
+            await SearchRuntimeManager(this)();
+            //await PathfindingWrapper(this, await this.pathAlgorithm(this, this.startingPosition, this.endingPosition), ()=>{this.isPathFinding = false}).runAlgorithm();
         },
         handleStep: function () {
             this.shouldStep = true;
@@ -221,7 +222,25 @@ export default {
         },
         
         draw: function(position, selectedBrush=this.selectedBrush, isAnimated=this.isAnimating) {
-            if ((this.isEmpty(position) || selectedBrush === "unvisited")) {
+            if (selectedBrush === "unvisited") {
+                this.forceDraw(position, selectedBrush, isAnimated);
+            }
+            else if (this.isEmpty(position)) {
+                if (selectedBrush === "end-node") {
+                    if (this.endingPosition !== null) return;
+                    this.endingPosition = position;
+                }
+                else if (selectedBrush === "start-node") {
+                    if (this.startingPosition !== null) return;
+                    this.startingPosition = position;
+                }
+                else if (selectedBrush === "flag") {
+                    if (this.flags.length <= 6) {
+                        this.flags.push(position);
+                    } else {
+                        return;
+                    }
+                }
                 this.forceDraw(position, selectedBrush, isAnimated)
             }
         },
@@ -233,13 +252,12 @@ export default {
             else if (this.board[position[0]][position[1]] === -3) {
                 this.endingPosition = null;
             }
-            if (selectedBrush === "end-node") {
-                if (this.endingPosition !== null) return;
-                this.endingPosition = position;
-            }
-            else if (selectedBrush === "start-node") {
-                if (this.startingPosition !== null) return;
-                this.startingPosition = position;
+            else if (this.board[position[0]][position[1]] === -5) {
+                for (let i = 0; i < this.flags.length; i++) {
+                    if (this.flags[i][0] === position[0] && this.flags[i][1] === position[1]) {
+                        this.flags.splice(i, 1);
+                    }
+                }
             }
             this.rerenderBoard();
             this.highlightCell(position, brush);
@@ -343,6 +361,20 @@ $table-radius: 10px;
         background-color: rgb(255, 255, 255);
     }
 }
+@keyframes flagAnimation {
+    0%{
+        transform: scale(0);
+        background-color: rgb(255, 180, 180);
+        border-radius: 15px;
+    }
+    50% {
+        transform: scale(1.3);
+    }
+    75% {
+        border-radius: 6px;
+    } 
+}
+
 @keyframes detailsRedAnimation {
     0%{
         transform: scale(0);
@@ -394,6 +426,15 @@ $table-radius: 10px;
     &:hover {
         background-color: rgba(255, 255, 255, 0.294);
     }
+}
+
+
+.flag {
+    background-color: rgb(255, 98, 98);
+}
+.flag-animated {
+    background-color: rgb(255, 98, 98);
+    animation: flagAnimation linear 0.4s;
 }
 
 .grid {

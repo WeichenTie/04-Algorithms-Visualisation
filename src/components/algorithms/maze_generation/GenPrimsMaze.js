@@ -47,7 +47,6 @@ async function GenPrimsMaze (data, wallStyle=()=>{return "wall"}) {
     mapClear(next);
     
     const algorithmIteration = () => {
-        if (options.size === 0) return true;
         // pick random wall from list
         const optArr = []
         const iter = options.values();
@@ -66,7 +65,13 @@ async function GenPrimsMaze (data, wallStyle=()=>{return "wall"}) {
         }
         getNeighboursWithValue(next, -1).forEach((e) => options.set(mapper(e), e));
 
-        return options.size === 0;
+        if (options.size === 0) {
+            data.draw([(data.tableSize - 1) / 2, (data.tableSize - 1) / 2 - 10], 'start-node');
+            data.draw([(data.tableSize - 1) / 2, (data.tableSize - 1) / 2 + 10], 'end-node');
+            return true;
+        } else {
+            return false;
+        }
     }
 
     return algorithmIteration;

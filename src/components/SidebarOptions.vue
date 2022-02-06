@@ -118,12 +118,17 @@
         <form>
             <h2>Algorithm Settings</h2>
             <div class="option">
-                <label>Pathfinder: </label>
-                <select></select>
+                <label>Maze Generation: </label>
+                <select>
+                    <option :value='10'>Randomised Prims Algorithm</option>
+                </select>
             </div>
             <div class="option">
-                <label>Maze Generation: </label>
-                <select></select>
+                <label>Pathfinder: </label>
+                <select>
+                    <option :value='0'>Breadth First Search</option>
+                    <option :value='10'>Depth First Search</option>
+                </select>
             </div>
             <div class="option">
                 <label>Graph: </label>
