@@ -19,7 +19,6 @@ git commit -m 'deploy'
 # if you are deploying to https://<USERNAME>.github.io
 # git push -f git@github.com:<USERNAME>/<USERNAME>.github.io.git main
 
-if you are deploying to https://WeichenTie.github.io/Algorithms-Visualisation
+#if you are deploying to https://WeichenTie.github.io/Algorithms-Visualisation
 git push -f git@github.com:WeichenTie/Algorithms-Visualisation.git main:gh-pages
-
 cd -
