@@ -89,12 +89,16 @@ function FindAStarMaze(data, start, end) {
                 weight += data.board[position[0]][position[1]];
                 n = path.get(n);
             }
-            for (let b of shortestPath) {
-                data.highlightAlgoDetailCell(b , "temp1");
+            if (!data.isLive) {
+                for (let b of shortestPath) {
+                    data.highlightAlgoDetailCell(b , "temp1");
+                }
             }
             return {path: shortestPath, weight: weight};
         }
-        data.highlightAlgoDetailCell(intToPos(curNode), "temp2");
+        if (data.flags.length === 0 || !data.isLive) {
+            data.highlightAlgoDetailCell(intToPos(curNode), "temp2");
+        }
         addNeighbours(curNode);
         //return [];
         return false;

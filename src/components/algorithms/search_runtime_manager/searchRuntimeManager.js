@@ -1,5 +1,6 @@
 import Graph from '../data_structures/graph/Graph'
 import PathfindingWrapper from '@/components/algorithms/pathfinding/PathfindingWrapper'
+import LinkerWrapper from '../linker/LinkerWrapper';
 
 const asyncWait = ms => new Promise(resolve => setTimeout(resolve, ms));
 // For this function to work, a start and end node must be provided
@@ -20,7 +21,7 @@ function SearchRuntimeManager(data) {
         vertices.set(1 + data.flags.length, data.endingPosition);
     }
 
-
+    // Searches each possible path between nodes
     const doSearch = () => {
         let src = 0;
         let dest = 1;
@@ -38,35 +39,10 @@ function SearchRuntimeManager(data) {
                 data.rerenderBoard();
                 return true;
             }
+            // Adds edge to graph if path is found 
             graph.addEdge(src, dest, path.weight, path.path);
-            dest++;
-            if (dest >= graph.numVertex) {
-                src++;
-                dest = src + 1;
-            }
-            return false;
-        }
-        return run;
-    }
-
-    const doLink = () => {
-        let src = 0;
-        let dest = 1;
-        const run = async () => {
-            if (src >= graph.numVertex - 1) {
-                return true;
-            }
-            // Run path finder
-            const path = await PathfindingWrapper(
-                data,
-                await data.pathAlgorithm(data, vertices.get(src), vertices.get(dest)))
-                .runAlgorithm();
-            // Check if no path exist
-            if (path === null) {
-                data.rerenderBoard();
-                return true;
-            }
-            graph.addEdge(src, dest, path.weight, path.path);
+            graph.addEdge(dest, src, path.weight, path.path);
+            // Incrementing
             dest++;
             if (dest >= graph.numVertex) {
                 src++;
@@ -80,13 +56,13 @@ function SearchRuntimeManager(data) {
     const stepper = async () => {
         if (!doneSearch) {
             doneSearch = await search();
-            data.isPathFinding = !doneSearch;
             return false;
         } 
-        else if (!doneLink) {
-            return false;
+        else {
+            await (LinkerWrapper(data, data.linkerAlgorithm, graph)).runAlgorithm();
+            data.isPathFinding = false;
+            return true;
         }
-        return true;
     }
 
     const timedLoop = async () => {
@@ -115,10 +91,10 @@ function SearchRuntimeManager(data) {
                         clearTimeout(timeout);
                         resolve();
                     } else {
+                        await asyncWait(Math.min(data.renderSpeed / 100 * 2500, 1000));
+                        data.rerenderBoard();
                         timeout = setTimeout(() => runTimedLoop(), data.renderSpeed);
                     }
-                    await asyncWait(Math.min(data.renderSpeed / 100 * 2500, 1000));
-                    data.rerenderBoard();
                 }
             }
             let timeout = setTimeout(() => runTimedLoop(), data.renderSpeed);
@@ -129,6 +105,8 @@ function SearchRuntimeManager(data) {
         while (!await search()) {
             continue;
         }
+        data.rerenderBoard();
+        await (LinkerWrapper(data, data.linkerAlgorithm, graph)).runAlgorithm();
         data.isPathFinding = false;
     }
 

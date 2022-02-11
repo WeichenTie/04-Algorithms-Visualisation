@@ -40,15 +40,7 @@
                 </tr>
             </table>
         </div>
-        <div class="graph"
-            :style="{
-                height: this.cellSize*this.tableSize +'px'
-            }"
-        >
-
-        </div>
     </div>
-    
 </template>
 <script lang="js">
 import SidebarOptions from './SidebarOptions';
@@ -64,6 +56,7 @@ import MazeGenWrapper from './algorithms/maze_generation/MazeGenWrapper';
 import GenFilledBoard from './algorithms/maze_generation/GenFilledBoard';
 import PathfindingWrapper from './algorithms/pathfinding/PathfindingWrapper';
 import SearchRuntimeManager from './algorithms/search_runtime_manager/SearchRuntimeManager';
+import ClosestNeighbour from './algorithms/linker/ClosestNeighbour'
 export default {
     components: {
         SidebarOptions,
@@ -72,7 +65,7 @@ export default {
         return {
             // Immutable data
             tableSize: 35,
-            cellSize: 25,
+            cellSize: 27,
             maxFlags: 5,
             brushValueMap: new Map(),
             valueBrushMap: new Map(),
@@ -92,7 +85,7 @@ export default {
             stepSize:1,
             mazeAlgorithm: GenPrimsMaze,
             pathAlgorithm: FindAStarMaze,
-            linkerAlgorithm: null,
+            linkerAlgorithm: ClosestNeighbour,
             isLive: false,
             // BoardState
             selectedBrush: "wall",
@@ -288,7 +281,6 @@ export default {
         // Temporary highlight cell at position with specific colour via classname manipulation
         highlightAlgoDetailCell: function(position, highlight, isAnimated=(this.isAnimating && !this.isLive)) {
             const brush = highlight + (isAnimated? "-animated":"");
-            console.log(isAnimated );
             const pos = `${position[0]}-${position[1]}`;
             const list = this.$refs[pos][0].classList.value.split(" ");
             if (list[0].includes("unvisited")) {
