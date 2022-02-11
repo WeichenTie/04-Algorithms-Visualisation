@@ -25,7 +25,7 @@ function PathfindingWrapper(data, algorithm, endAction = ()=>{}) {
     const timedLoop = async () => {
         return new Promise((resolve, reject) => {
             const runTimedLoop = async () => {
-                // Maze Generation completely stopped
+                // Search completely stopped
                 if (!data.isPathFinding) {
                     clearTimeout(timeout);
                     resolve();
@@ -72,7 +72,7 @@ function PathfindingWrapper(data, algorithm, endAction = ()=>{}) {
                     clearInterval(interval);
                 }
                 // Set to instant render
-                else if (data.renderSpeed === 0) {
+                else if (data.renderSpeed === 0 || data.isLive) {
                     clearInterval(interval);
                     await runAlgorithm();
                     resolve();
@@ -106,7 +106,7 @@ function PathfindingWrapper(data, algorithm, endAction = ()=>{}) {
     }
 
     const runAlgorithm = async () => {
-        if (data.renderSpeed === 0) {
+        if (data.renderSpeed === 0 || data.isLive) {
             instantLoop();
         }
         else if (data.renderSpeed === -1) {

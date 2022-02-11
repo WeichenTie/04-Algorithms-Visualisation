@@ -92,6 +92,7 @@ export default {
             mazeAlgorithm: GenPrimsMaze,
             pathAlgorithm: FindAStarMaze,
             linkerAlgorithm: null,
+            isLive: true,
             // BoardState
             selectedBrush: "wall",
             weight: 1,
@@ -169,6 +170,10 @@ export default {
             else {
                 this.draw(position);
             }
+            if (this.isLive) {
+                this.rerenderBoard();
+                SearchRuntimeManager(this)();
+            }
         },
         handleMouseEnter: function (event) {
             if (this.isGeneratingMaze || this.isPathFinding) return;
@@ -188,6 +193,10 @@ export default {
             // Drawing behaviour
             else {
                 this.draw(position);
+            }
+            if (this.isLive) {
+                this.rerenderBoard();
+                SearchRuntimeManager(this)();
             }
         },
         handleMouseUp: function () {
@@ -222,7 +231,7 @@ export default {
             return this.board[position[0]][position[1]] == 0;
         },
         
-        draw: function(position, selectedBrush=this.selectedBrush, isAnimated=this.isAnimating) {
+        draw: function(position, selectedBrush=this.selectedBrush, isAnimated=(this.isAnimating && !this.isLive)) {
             if (selectedBrush === "unvisited") {
                 this.forceDraw(position, selectedBrush, isAnimated);
             }
@@ -245,7 +254,7 @@ export default {
                 this.forceDraw(position, selectedBrush, isAnimated)
             }
         },
-        forceDraw: function(position, selectedBrush=this.selectedBrush, isAnimated=this.isAnimating) {
+        forceDraw: function(position, selectedBrush=this.selectedBrush, isAnimated=isAnimated=(this.isAnimating && !this.isLive)) {
             const brush = selectedBrush + (isAnimated? "-animated":"");
             if (this.board[position[0]][position[1]] === -2) { // start node
                 this.startingPosition = null;
@@ -272,12 +281,13 @@ export default {
         },
 
         // Temporary highlight cell at position with specific colour via classname manipulation
-        highlightAlgoDetailCell: function(position, highlight) {
+        highlightAlgoDetailCell: function(position, highlight, isAnimated=(this.isAnimating && !this.isLive)) {
+            const brush = highlight + (isAnimated? "-animated":"");
             const pos = `${position[0]}-${position[1]}`;
             const list = this.$refs[pos][0].classList.value.split(" ");
             if (list[0].includes("unvisited")) {
                 this.tracerMarks.push(pos);
-                this.$refs[pos][0].classList.value = `${list[0]} ${highlight}`;
+                this.$refs[pos][0].classList.value = `${list[0]} ${brush}`;
             }
         },
 
@@ -515,6 +525,21 @@ td {
 .red-detail {
     animation: detailsRedAnimation linear 1s;
 }
+.temp-animated {
+    background-color: #cdff8b;
+}
+
+.temp1-animated {
+    background-color: #ffd900;
+}
+.temp2-animated {
+    animation: searchingAnimation ease-in 0.4s;
+    background-color: #cdfffb;
+}
+.temp3-animated {
+    background-color: #2f00ff;
+}
+
 .temp {
     background-color: #cdff8b;
 }
@@ -523,7 +548,6 @@ td {
     background-color: #ffd900;
 }
 .temp2 {
-    animation: searchingAnimation ease-in 0.4s;
     background-color: #cdfffb;
 }
 .temp3 {

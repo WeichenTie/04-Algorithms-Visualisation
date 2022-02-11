@@ -13,7 +13,7 @@ function FindAStarMaze(data, start, end) {
     function comparator(a, b) {
         let aScore = scores.get(a);
         let bScore = scores.get(b);
-        return (aScore.g + aScore.h) - (bScore.g + bScore.h)  ;
+        return (aScore.g + aScore.h) - (bScore.g + bScore.h);
     }
 
     // Manhattan distance
@@ -66,6 +66,7 @@ function FindAStarMaze(data, start, end) {
     const openSet = new Set();
 
     const scores = new Map();
+    let weight = 0;
     const path = new Map();
 
     // add starting node to the the open list
@@ -83,13 +84,15 @@ function FindAStarMaze(data, start, end) {
             shortestPath.push(intToPos(curNode));
             let n = path.get(curNode);
             while (n != null) {
-                shortestPath.push(intToPos(n));
+                const position = intToPos(n);
+                shortestPath.push(position);
+                weight += data.board[position[0]][position[1]];
                 n = path.get(n);
             }
             for (let b of shortestPath) {
                 data.highlightAlgoDetailCell(b , "temp1", false);
             }
-            return shortestPath;
+            return {path: shortestPath, weight: weight};
         }
         data.highlightAlgoDetailCell(intToPos(curNode), "temp2", false);
         addNeighbours(curNode);

@@ -3,13 +3,9 @@ import PathfindingWrapper from '@/components/algorithms/pathfinding/PathfindingW
 
 const asyncWait = ms => new Promise(resolve => setTimeout(resolve, ms));
 // For this function to work, a start and end node must be provided
-function SearchRuntimeManager (data) {
+function SearchRuntimeManager(data) {
     // Check if start and end are provided otherwise return false
     // This will be handled by frontend with an alert
-
-    
-
-
     const init = () => {
         // Add start node to graph
         graph.addVertex(0);
@@ -25,52 +21,169 @@ function SearchRuntimeManager (data) {
     }
 
 
-    // Loop through each n(n + 1)/2 possible node combination 
-    const searchAllPaths = async () => {
-        for (let src = 0; src < graph.numVertex; src++) {
-            for (let dest = src + 1; dest < graph.numVertex; dest++) {
-                // Get the path
-                const path = await PathfindingWrapper(
-                    data,
-                    await data.pathAlgorithm(data, vertices.get(src), vertices.get(dest))
-                ).runAlgorithm();
-                // Add that edge
-                if (path === null) {
-                    await asyncWait(1000);
-                    data.isPathFinding = false;
-                    data.rerenderBoard();
-                    return;
-                }
-                if (src === 0 || dest === graph.numVertex - 1) {
-                    graph.addEdge(src, dest, path.length ,path);
-                } else {
-                    graph.addEdge(src, dest, path.length, path);
-                    graph.addEdge(dest, src, path.length, path.reverse());
-                }
-
-                await asyncWait(1000);
-                data.rerenderBoard();
-                
+    const doSearch = () => {
+        let src = 0;
+        let dest = 1;
+        const run = async () => {
+            if (src >= graph.numVertex - 1) {
+                return true;
             }
+            // Run path finder
+            const path = await PathfindingWrapper(
+                data,
+                await data.pathAlgorithm(data, vertices.get(src), vertices.get(dest)))
+                .runAlgorithm();
+            // Check if no path exist
+            if (path === null) {
+                data.rerenderBoard();
+                return true;
+            }
+            graph.addEdge(src, dest, path.weight, path.path);
+            dest++;
+            if (dest >= graph.numVertex) {
+                src++;
+                dest = src + 1;
+            }
+            return false;
         }
-        console.table(graph.getEdgePath(0,1));
+        return run;
+    }
+
+    const doLink = () => {
+        let src = 0;
+        let dest = 1;
+        const run = async () => {
+            if (src >= graph.numVertex - 1) {
+                return true;
+            }
+            // Run path finder
+            const path = await PathfindingWrapper(
+                data,
+                await data.pathAlgorithm(data, vertices.get(src), vertices.get(dest)))
+                .runAlgorithm();
+            // Check if no path exist
+            if (path === null) {
+                data.rerenderBoard();
+                return true;
+            }
+            graph.addEdge(src, dest, path.weight, path.path);
+            dest++;
+            if (dest >= graph.numVertex) {
+                src++;
+                dest = src + 1;
+            }
+            return false;
+        }
+        return run;
+    }
+
+    const stepper = async () => {
+        if (!doneSearch) {
+            doneSearch = await search();
+            data.isPathFinding = !doneSearch;
+            return false;
+        } 
+        else if (!doneLink) {
+            return false;
+        }
+        return true;
+    }
+
+    const timedLoop = async () => {
+        return new Promise((resolve, reject) => {
+            const runTimedLoop = async () => {
+                // Search completely stopped
+                if (!data.isPathFinding) {
+                    clearTimeout(timeout);
+                    resolve();
+                }
+                // Set to instant render
+                else if (data.renderSpeed === 0 || data.isLive) {
+                    clearTimeout(timeout);
+                    await runAlgorithm();
+                    resolve();
+                }
+                // Set to step mode
+                else if (data.renderSpeed === -1) {
+                    clearTimeout(timeout);
+                    await runAlgorithm();
+                    resolve();
+                }
+                // Run algorithm and check if it is done
+                else {
+                    if (await stepper()) {
+                        clearTimeout(timeout);
+                        resolve();
+                    } else {
+                        timeout = setTimeout(() => runTimedLoop(), data.renderSpeed);
+                    }
+                    await asyncWait(Math.min(data.renderSpeed / 100 * 2500, 1000));
+                    data.rerenderBoard();
+                }
+            }
+            let timeout = setTimeout(() => runTimedLoop(), data.renderSpeed);
+        });
+    }
+
+    const instantLoop = async () => {
+        while (!await search()) {
+            continue;
+        }
         data.isPathFinding = false;
     }
-    
-    
-    
-    
-    // Traverse graph from start to finish
-    
-    // Display shortest path
 
+    const stepLoop = async () => {
+        // return new Promise((resolve, reject) => {
+        //     const interval = setInterval(async () => {
+        //         // Maze Generation completely stopped
+        //         if (!data.isPathFinding) {
+        //             resolve();
+        //             clearInterval(interval);
+        //         }
+        //         // Set to instant render
+        //         else if (data.renderSpeed === 0) {
+        //             clearInterval(interval);
+        //             await runAlgorithm();
+        //             resolve();
+        //         }
+        //         // Set to timed render
+        //         else if (data.renderSpeed !== -1) {
+        //             clearInterval(interval);
+        //             await runAlgorithm();
+        //             resolve();
+        //         }
+        //         // Run algorithm and check if it is done
+        //         else if (data.shouldStep) {
+        //             if (stepper()) {
+        //                 resolve();
+        //                 clearInterval(interval);
+        //             }
+        //             data.shouldStep = false;
+        //         }
+        //     }, 20);
+        // });
+    }
 
+    const runAlgorithm = async () => {
+        if (data.renderSpeed === 0 || data.isLive) {
+            await instantLoop();
+        }
+        else if (data.renderSpeed === -1) {
+            await stepLoop();
+        }
+        else {
+            await timedLoop();
+        }
+    }
 
-    if (data.startingPosition === null || data.endingPosition === null) return ()=>{data.isPathFinding = false};
+    if (data.startingPosition === null || data.endingPosition === null) return () => { data.isPathFinding = false };
+    let doneSearch = false;
+    let doneLink = false;
     let vertices = new Map();
     const graph = new Graph();
+    const search = doSearch();
     init();
-    return searchAllPaths;
+    return runAlgorithm;
 }
 
 export default SearchRuntimeManager;
