@@ -97,6 +97,8 @@
                 <label for="live-mode">Live Mode:</label>
                 <PillToggleSwitchVue
                     id="live-mode"
+                    @on-toggle="$emit('on-toggle-live-mode', $event)"
+                    :initialValue="false"
                 />
             </div>
             <div class="option">
@@ -104,6 +106,7 @@
                 <PillToggleSwitchVue
                     id="grid-view"
                     @on-toggle="$emit('on-toggle-grid', $event)"
+                    :initialValue="true"
                 />
             </div>
             <div class="option">
@@ -111,6 +114,7 @@
                 <PillToggleSwitchVue
                     id="toggle-animations"
                     @on-toggle="$emit('on-toggle-animation', $event)"
+                    :initialValue="true"
                 />
             </div>
             

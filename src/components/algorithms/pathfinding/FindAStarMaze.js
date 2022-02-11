@@ -90,11 +90,11 @@ function FindAStarMaze(data, start, end) {
                 n = path.get(n);
             }
             for (let b of shortestPath) {
-                data.highlightAlgoDetailCell(b , "temp1", false);
+                data.highlightAlgoDetailCell(b , "temp1");
             }
             return {path: shortestPath, weight: weight};
         }
-        data.highlightAlgoDetailCell(intToPos(curNode), "temp2", false);
+        data.highlightAlgoDetailCell(intToPos(curNode), "temp2");
         addNeighbours(curNode);
         //return [];
         return false;

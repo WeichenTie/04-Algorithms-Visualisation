@@ -18,9 +18,12 @@
 </template>
 <script>
 export default {
+    props: {
+        initialValue: Boolean
+    },
     data() {
         return {
-            value: true,
+            value: this.initialValue,
         }
     },
     computed: {

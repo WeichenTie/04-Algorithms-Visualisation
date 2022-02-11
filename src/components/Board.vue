@@ -11,6 +11,7 @@
             @on-render-speed-change="renderSpeed=Number($event)"
             @on-toggle-grid="isGridShowing=Boolean($event)"
             @on-toggle-animation="isAnimating=Boolean($event)"
+            @on-toggle-live-mode="handleToggleLive($event)"
         />
         <!-- END OF HORRIBLE CODE  -->
         <div class='board'>
@@ -72,7 +73,7 @@ export default {
             // Immutable data
             tableSize: 35,
             cellSize: 25,
-            maxFlags: 8,
+            maxFlags: 5,
             brushValueMap: new Map(),
             valueBrushMap: new Map(),
             // Events
@@ -92,7 +93,7 @@ export default {
             mazeAlgorithm: GenPrimsMaze,
             pathAlgorithm: FindAStarMaze,
             linkerAlgorithm: null,
-            isLive: true,
+            isLive: false,
             // BoardState
             selectedBrush: "wall",
             weight: 1,
@@ -219,6 +220,10 @@ export default {
         handleStep: function () {
             this.shouldStep = true;
         },
+        handleToggleLive: function(e) {
+            this.isLive = Boolean(e);
+            this.isLive ? SearchRuntimeManager(this)() : this.rerenderBoard()
+        },
 
         //-----------------------------------------------------
         // Algorithms
@@ -254,7 +259,7 @@ export default {
                 this.forceDraw(position, selectedBrush, isAnimated)
             }
         },
-        forceDraw: function(position, selectedBrush=this.selectedBrush, isAnimated=isAnimated=(this.isAnimating && !this.isLive)) {
+        forceDraw: function(position, selectedBrush=this.selectedBrush, isAnimated=(this.isAnimating && !this.isLive)) {
             const brush = selectedBrush + (isAnimated? "-animated":"");
             if (this.board[position[0]][position[1]] === -2) { // start node
                 this.startingPosition = null;
@@ -283,6 +288,7 @@ export default {
         // Temporary highlight cell at position with specific colour via classname manipulation
         highlightAlgoDetailCell: function(position, highlight, isAnimated=(this.isAnimating && !this.isLive)) {
             const brush = highlight + (isAnimated? "-animated":"");
+            console.log(isAnimated );
             const pos = `${position[0]}-${position[1]}`;
             const list = this.$refs[pos][0].classList.value.split(" ");
             if (list[0].includes("unvisited")) {
